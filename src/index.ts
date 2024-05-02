@@ -14,11 +14,11 @@ import handleProxy from './proxy';
 import handleRedirect from './redirect';
 import apiRouter from './router';
 
-// export interface Env {
-// 	DB: D1Database
-//   }
+import stateManager from './utils/StateManager';
+import { kvGet, kvSet } from './utils/kv'
 
-// Export a default object containing event handlers
+
+
 export default {
 	// The fetch handler is invoked when this worker receives a HTTP(S) request
 	// and should return a Response (optionally wrapped in a Promise)
@@ -41,13 +41,23 @@ export default {
 		}
 
 		if (url.pathname.startsWith('/query')) {
-			console.log(env);
-			
 			const adapter = new PrismaD1(env.user)
 			const prisma = new PrismaClient({ adapter })
 			const users = await prisma.user.findMany()
 			const result = JSON.stringify(users)
 			return new Response(result);
+		}
+
+		if (url.pathname.startsWith('/kv')) {
+			const setRes = await kvSet('testKey', 'testVal', env)
+			const getRes = await kvGet('testKey', env)
+			const getNull = await kvGet('testNull', env)
+			console.log(setRes);
+			console.log(getRes);
+			console.log(getNull);
+			return new Response(
+				getRes + ' ' + getNull
+			)
 		}
 		
 
@@ -58,8 +68,10 @@ export default {
       <li><code><a href="/proxy?modify&proxyUrl=https://example.com/">/proxy?modify&proxyUrl=https://example.com/</a></code>, or</li>
       <li><code><a href="/api/todos">/api/todos</a></code></li>
 	  <li><code><a href="/query">/query</a></code></li> 
+	  <li><code><a href="/kv">/kv</a></code></li> 
 	  `,
 			{ headers: { 'Content-Type': 'text/html' } }
 		);
 	},
 };
+
