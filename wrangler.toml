@@ -29,6 +29,9 @@ compatibility_date = "2024-04-05"
 # binding = "MY_DB"
 # database_name = "my-database"
 # database_id = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+d1_databases = [
+  { binding = "user", database_name = "user", database_id = "85d5c6f6-58e3-43dd-9dca-6e2132097ee6" }
+]
 
 # Bind a dispatch namespace. Use Workers for Platforms to deploy serverless functions programmatically on behalf of your customers.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#dispatch-namespace-bindings-workers-for-platforms
@@ -60,6 +63,10 @@ compatibility_date = "2024-04-05"
 # [[kv_namespaces]]
 # binding = "MY_KV_NAMESPACE"
 # id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+kv_namespaces = [
+  { binding = "TokenKV", id = "5e9a1653f2934cf3bc2616e23f515722" }
+]
 
 # Bind an mTLS certificate. Use to present a client certificate when communicating with another service.
 # Docs: https://developers.cloudflare.com/workers/wrangler/configuration/#mtls-certificates
