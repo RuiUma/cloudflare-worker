@@ -1,15 +1,15 @@
 import bcrypt from "bcrypt";
+import DIC from "./dic";
 
-const saltRounds = 10;
 
 const encrypt = async (password: string) => {
-    return await bcrypt.hash(password, saltRounds);
+    return await bcrypt.hash(password, DIC.SALT_ROUND);
 }
 
 const compare = async (password: string, hash: string) => {
     return await bcrypt.compare(password, hash);
 }
 
-export  default { encrypt,  compare }
+export  { encrypt,  compare }
 
 

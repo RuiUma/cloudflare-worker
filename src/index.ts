@@ -9,13 +9,12 @@
  */
 import { PrismaClient } from '@prisma/client'
 import { PrismaD1 } from '@prisma/adapter-d1'
-
-import handleProxy from './proxy';
-import handleRedirect from './redirect';
-import apiRouter from './router';
-
 import stateManager from './utils/StateManager';
 import { kvGet, kvSet } from './utils/kv'
+import { parse } from "cookie";
+import {SignJWT, jwtVerify} from 'jose'
+
+import DIC from './utils/dic';
 
 
 
@@ -26,46 +25,88 @@ export default {
 		// You'll find it helpful to parse the request.url string into a URL object. Learn more at https://developer.mozilla.org/en-US/docs/Web/API/URL
 		const url = new URL(request.url);
 
-		// You can get pretty far with simple logic like if/switch-statements
-		switch (url.pathname) {
-			case '/redirect':
-				return handleRedirect.fetch(request, env, ctx);
+		if (url.pathname.startsWith('/api')) {
 
-			case '/proxy':
-				return handleProxy.fetch(request, env, ctx);
+			const cookie = parse(request.headers.get('Cookie')||'')
+
+
+			// const body = request.body || {}
+			// console.log(body);
+			const { jwtReq, email, password }:any = await request.json()
+			console.log('jwtReq  ' + jwtReq);
+
+
+
+
+
+			let payload, protectedHeader
+			try {
+				const obj = await jwtVerify(jwtReq, DIC.SECRET, {
+					issuer: DIC.ISSURER,
+					audience: DIC.AUDIENCE,
+				})
+				payload = obj.payload
+				protectedHeader = obj.protectedHeader
+				console.log('verify');
+			
+				console.log(protectedHeader)
+				console.log(payload)
+				console.log();
+			} catch (error) {
+				console.error('verify failed.');
+				
+			}
+
+			const jwt = await new SignJWT({ email, password })
+				.setProtectedHeader({ alg:DIC.ALG })
+				.setIssuedAt()
+				.setIssuer('urn:umatech:eason-cloudflare-worker')
+				.setAudience('urn:umatech:audience')
+				.setExpirationTime('2h')
+				.sign(DIC.SECRET)
+
+			console.log('jwt');
+			
+			console.log(jwt)
+
+			console.log('secret');
+			console.log(DIC.SECRET);
+
+			return new Response(jwt)
+			
 		}
 
-		if (url.pathname.startsWith('/api/')) {
-			// You can also use more robust routing
-			return apiRouter.handle(request);
-		}
+		
 
-		if (url.pathname.startsWith('/query')) {
-			const adapter = new PrismaD1(env.user)
-			const prisma = new PrismaClient({ adapter })
-			const users = await prisma.user.findMany()
-			const result = JSON.stringify(users)
-			return new Response(result);
-		}
 
-		if (url.pathname.startsWith('/kv')) {
-			const setRes = await kvSet('testKey', 'testVal', env)
-			const getRes = await kvGet('testKey', env)
-			const getNull = await kvGet('testNull', env)
-			console.log(setRes);
-			console.log(getRes);
-			console.log(getNull);
-			return new Response(
-				getRes + ' ' + getNull
-			)
-		}
+
+
+
+
+
+
+
+		// if (url.pathname.startsWith('/query')) {
+		// 	const adapter = new PrismaD1(env.user)
+		// 	const prisma = new PrismaClient({ adapter })
+		// 	const users = await prisma.user.findMany()
+		// 	const result = JSON.stringify(users)
+		// 	return new Response(result);
+		// }
+
+		// if (url.pathname.startsWith('/kv')) {
+		// 	const setRes = await kvSet('testKey', 'testVal', env)
+		// 	const getRes = await kvGet('testKey', env)
+		// 	const getNull = await kvGet('testNull', env)
+		// 	return new Response(
+		// 		getRes + ' ' + getNull
+		// 	)
+		// }
 		
 
 		return new Response(
 			`Try making requests to:
       <ul>
-      <li><code><a href="/redirect?redirectUrl=https://example.com/">/redirect?redirectUrl=https://example.com/</a></code>,</li>
-      <li><code><a href="/proxy?modify&proxyUrl=https://example.com/">/proxy?modify&proxyUrl=https://example.com/</a></code>, or</li>
       <li><code><a href="/api/todos">/api/todos</a></code></li>
 	  <li><code><a href="/query">/query</a></code></li> 
 	  <li><code><a href="/kv">/kv</a></code></li> 
