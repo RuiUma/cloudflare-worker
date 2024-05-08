@@ -7,7 +7,13 @@ import { kvGet, kvSet } from '../utils/kv'
 
 const register = async ( email:string, password:string, env: Env, name?:string ) => {
     const encryptPassword = await encrypt(password)
-    const res = insertUser(email,encryptPassword,env,name)
+
+    try {
+        const res = await insertUser(email,encryptPassword,env,name)
+    } catch (error) {
+        return null
+    }
+    
 
     const payload = {
         userName:email

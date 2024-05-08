@@ -10,12 +10,12 @@ const login = async (userName:string, password:string, env:Env) => {
 
     const user = await queryUser(userName, env)
     if (! user) {
-        return false
+        return null
     }
 
     const res = await compare(password,user.password)
     if (! res) {
-        return false
+        return null
     }
 
     const payload = {

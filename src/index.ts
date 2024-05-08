@@ -15,7 +15,9 @@ import { parse } from "cookie";
 import {SignJWT, jwtVerify} from 'jose'
 
 import DIC from './utils/dic';
-
+import login from './login/login';
+import { verify } from './Verify/Verify';
+import { register } from './Register/Register';
 
 
 export default {
@@ -25,84 +27,56 @@ export default {
 		// You'll find it helpful to parse the request.url string into a URL object. Learn more at https://developer.mozilla.org/en-US/docs/Web/API/URL
 		const url = new URL(request.url);
 
-		if (url.pathname.startsWith('/api')) {
+		const cookie = parse(request.headers.get('Cookie')||'')
+		
 
-			const cookie = parse(request.headers.get('Cookie')||'')
+		if (url.pathname.match('/login')) {
 
-
-			// const body = request.body || {}
-			// console.log(body);
-			const { jwtReq, email, password }:any = await request.json()
-			console.log('jwtReq  ' + jwtReq);
-
-
-
-
-
-			let payload, protectedHeader
-			try {
-				const obj = await jwtVerify(jwtReq, DIC.SECRET, {
-					issuer: DIC.ISSURER,
-					audience: DIC.AUDIENCE,
-				})
-				payload = obj.payload
-				protectedHeader = obj.protectedHeader
-				console.log('verify');
 			
-				console.log(protectedHeader)
-				console.log(payload)
-				console.log();
-			} catch (error) {
-				console.error('verify failed.');
-				
+			const { email, password }:any = await request.json()
+
+			const response = await login(email, password, env)
+
+			if (!response) {
+				return new Response('login failed')
 			}
 
-			const jwt = await new SignJWT({ email, password })
-				.setProtectedHeader({ alg:DIC.ALG })
-				.setIssuedAt()
-				.setIssuer('urn:umatech:eason-cloudflare-worker')
-				.setAudience('urn:umatech:audience')
-				.setExpirationTime('2h')
-				.sign(DIC.SECRET)
 
-			console.log('jwt');
-			
-			console.log(jwt)
-
-			console.log('secret');
-			console.log(DIC.SECRET);
-
-			return new Response(jwt)
+			return new Response(response, {
+				headers: {
+					'Set-Cookie': response
+				}
+			})
 			
 		}
 
-		
+		if (url.pathname.match('/register')) {
+
+			const { email, password, name }:any = await request.json()
+
+			const response = await register(email, password, env, name)
+
+			if (!response) {
+				return new Response('register failed')
+			}
+
+			return new Response(response, {
+				headers: {
+					'Set-Cookie': response
+				}
+			})
+
+		}
+
+		if (url.pathname.match('/verify')) {
+
+			const response = await verify(cookie.token, env)
+
+			return new Response(response)
+
+		}
 
 
-
-
-
-
-
-
-
-		// if (url.pathname.startsWith('/query')) {
-		// 	const adapter = new PrismaD1(env.user)
-		// 	const prisma = new PrismaClient({ adapter })
-		// 	const users = await prisma.user.findMany()
-		// 	const result = JSON.stringify(users)
-		// 	return new Response(result);
-		// }
-
-		// if (url.pathname.startsWith('/kv')) {
-		// 	const setRes = await kvSet('testKey', 'testVal', env)
-		// 	const getRes = await kvGet('testKey', env)
-		// 	const getNull = await kvGet('testNull', env)
-		// 	return new Response(
-		// 		getRes + ' ' + getNull
-		// 	)
-		// }
-		
 
 		return new Response(
 			`Try making requests to:
