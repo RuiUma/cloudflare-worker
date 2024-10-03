@@ -1,9 +1,8 @@
 import {SignJWT} from 'jose'
-
 import DIC from '../utils/dic';
-import { encrypt,  compare } from '../utils/encrypt';
+import { encrypt } from '../utils/encrypt';
 import { insertUser } from '../utils/db';
-import { kvGet, kvSet } from '../utils/kv'
+import { kvSet } from '../utils/kv'
 
 const register = async ( email:string, password:string, env: Env, name?:string ) => {
     const encryptPassword = await encrypt(password)

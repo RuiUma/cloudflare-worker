@@ -27,3 +27,4 @@ const insertUser = async (email:string, password:string, env:Env, name?:string, 
 }
 
 export { queryUser, insertUser }
+

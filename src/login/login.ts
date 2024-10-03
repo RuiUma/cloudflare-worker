@@ -1,9 +1,9 @@
 import {SignJWT} from 'jose'
 
 import DIC from '../utils/dic';
-import { encrypt,  compare } from '../utils/encrypt';
+import { compare } from '../utils/encrypt';
 import { queryUser } from '../utils/db';
-import { kvGet, kvSet } from '../utils/kv'
+import { kvSet } from '../utils/kv'
 
 
 const login = async (userName:string, password:string, env:Env) => {

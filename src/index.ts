@@ -7,14 +7,8 @@
  *
  * Learn more at https://developers.cloudflare.com/workers/
  */
-import { PrismaClient } from '@prisma/client'
-import { PrismaD1 } from '@prisma/adapter-d1'
-import stateManager from './utils/StateManager';
-import { kvGet, kvSet } from './utils/kv'
-import { parse } from "cookie";
-import {SignJWT, jwtVerify} from 'jose'
 
-import DIC from './utils/dic';
+import { parse } from "cookie";
 import login from './login/login';
 import { verify } from './Verify/Verify';
 import { register } from './Register/Register';
